@@ -1,0 +1,48 @@
+name: Tageslauf
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tageslauf
+  cancel-in-progress: false
+
+jobs:
+  lauf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gespeicherte Daten wiederherstellen
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: fi-data-${{ github.run_id }}
+          restore-keys: fi-data-
+
+      - name: Tests
+        run: python -m unittest discover
+
+      - name: Daten, Quoten, Empfehlungen, Website
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          PYTHONUTF8: "1"
+        run: python -m fi website
+
+      - name: Ergebnisse speichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898575+github-actions[bot]@users.noreply.github.com"
+          git add docs state
+          git diff --cached --quiet || git commit -m "Tageslauf $(date -u +%Y-%m-%d)"
+          git push
