@@ -1,0 +1,9 @@
+{
+  "meine_buchmacher": ["skybet", "winamax_de"],
+  "quoten_buchmacher": ["betway", "unibet_uk", "skybet", "winamax_de", "winamax_fr", "unibet_fr",
+                        "paddypower", "mybookieag", "leovegas", "codere_it"],
+  "zielquoten": [2.0, 3.0, 5.0],
+  "max_tipps": 3,
+  "tage_voraus": 2,
+  "team_zuordnungen": {}
+}
