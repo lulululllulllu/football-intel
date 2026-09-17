@@ -5,5 +5,5 @@
   "zielquoten": [1.8],
   "max_tipps": 1,
   "tage_voraus": 2,
-  "team_zuordnungen": {}
+  "team_zuordnungen": {"Espanyol": "Espanol"}
 }
