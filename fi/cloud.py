@@ -13,7 +13,7 @@ import datetime as dt
 import json
 import os
 
-from fi import config, db, odds_sync, optimizer, site, teams, tracking
+from fi import adjust, config, db, odds_sync, optimizer, site, teams, tracking
 from fi.predict import market_probabilities, predict_upcoming
 from fi.providers import odds_api
 from fi.timeutil import berlin_label, utc_to_berlin
@@ -72,11 +72,21 @@ def run(fetch_data: bool = True, fetch_odds: bool = True) -> dict:
     legs, notes = optimizer.collect_legs(conn, now, days, mine, include_unpriced=True)
     status["notes"] += notes
     created_at = db.utc_now()
+    min_return = float(settings.get("mindest_rueckzahlung", config.MIN_EXPECTED_RETURN))
+
+    day_cfg = {"quote_von": 1.5, "quote_bis": 2.0, "max_tipps": 1, **(settings.get("wette_des_tages") or {})}
+    day = optimizer.best_in_range(legs, float(day_cfg["quote_von"]), float(day_cfg["quote_bis"]),
+                                  int(day_cfg["max_tipps"]), min_return)
+    if day:
+        tracking.add(recs, float(day_cfg["quote_bis"]), day, created_at, kind="Wette des Tages")
+    day_bet = {"range": [day_cfg["quote_von"], day_cfg["quote_bis"]], "min_return": min_return,
+               "suggestion": site.suggestion_json(day) if day else None}
+
     targets = []
     for target in settings.get("zielquoten", [3.0]):
         suggestions = optimizer.optimize(legs, float(target), int(settings.get("max_tipps", 3)))
         best = suggestions[0] if suggestions else None
-        if best and best.expected_return >= config.MIN_EXPECTED_RETURN:
+        if best and best.expected_return >= min_return:
             tracking.add(recs, float(target), best, created_at)
             targets.append({"target": target, "suggestion": site.suggestion_json(best), "reason": None})
         else:
@@ -93,22 +103,30 @@ def run(fetch_data: bool = True, fetch_odds: bool = True) -> dict:
                                                             (today + dt.timedelta(days=days)).isoformat())):
         market = market_probabilities(conn, m["id"])
         item = models.get(m["id"], {})
+        goals = adjust.fit_goal_expectations(market.get("1x2", {}).get("probs"), market.get("ou25", {}).get("probs"))
+        my_prices = {}
+        for r in conn.execute("SELECT market, selection, MAX(price) AS price FROM odds WHERE match_id=? AND "
+                              "timing='current' AND bookmaker IN (%s) GROUP BY market, selection"
+                              % ",".join("?" * len(mine)), (m["id"], *mine)):
+            my_prices[f"{r['market']}:{r['selection']}"] = r["price"]
         matches.append({
             "kickoff_local": berlin_label(m["match_date"], m["kick_time"]),
             "competition": names[m["competition"]]["name"], "home": m["home_team"], "away": m["away_team"],
             "market": {k: v["probs"] for k, v in market.items() if k in ("1x2", "ou25")},
             "model": {k: v for k, v in item.get("model", {}).items() if k in ("1x2", "ou25", "btts")},
             "low_data": any(n < config.LOW_DATA_THRESHOLD for n in item.get("effective_games", ())),
+            "goals": goals, "my_prices": my_prices,
         })
 
     data = {
         "generated_local": utc_to_berlin(now).strftime("%d.%m.%Y, %H:%M"),
         "credits": status["credits"], "odds_error": status["odds_error"], "notes": status["notes"][:12],
-        "targets": targets, "legs": [site.leg_json(l) for l in legs], "matches": matches,
+        "day_bet": day_bet, "targets": targets, "legs": [site.leg_json(l) for l in legs], "matches": matches,
         "track": list(reversed(recs))[:40], "summary": tracking.summary(recs),
         "my_bookmakers": mine,
         "all_bookmakers": sorted({b for l in legs for b in l.prices}),
-        "rules": {"tolerance": config.TARGET_TOLERANCE, "min_return": config.MIN_EXPECTED_RETURN,
+        "rules": {"tolerance": config.TARGET_TOLERANCE, "min_return": min_return,
+                  "max_leg_odds": config.MAX_LEG_ODDS,
                   "max_legs": int(settings.get("max_tipps", 3)), "pool": optimizer.POOL_SIZE},
     }
     SITE_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -20,7 +20,7 @@ import json
 import sqlite3
 from dataclasses import asdict, dataclass, field
 
-from fi import config, db
+from fi import adjust, config, db
 from fi.predict import market_probabilities, predict_upcoming
 from fi.providers.odds_api import to_uk_time
 from fi.timeutil import berlin_label
@@ -45,6 +45,8 @@ class Leg:
     p_model: float | None
     n_bookmakers: int
     prices: dict = field(default_factory=dict)   # Quote je Buchmacher (alle, nicht nur deine)
+    p_raw: float | None = None                   # Marktwahrscheinlichkeit vor den Korrekturen
+    hints: list = field(default_factory=list)
 
     @property
     def match_date(self) -> str:
@@ -129,18 +131,28 @@ def collect_legs(conn: sqlite3.Connection, now_utc: dt.datetime, days: int,
             n_books = len(info["bookmaker"].split("/"))
             if n_books < config.MIN_BOOKMAKERS_FOR_PROB:
                 continue
-            for selection, p_market in info["probs"].items():
+            adjusted, excluded, adjust_notes = adjust.adjust(conn, m, market, info["probs"])
+            for text in adjust_notes:
+                if "ausgeschlossen" in text:
+                    notes.append(f"{m['home_team']} – {m['away_team']}: {text}")
+            for selection, p_raw in info["probs"].items():
+                if selection in excluded:
+                    continue
+                p_market = adjusted[selection]
                 prices = {r["bookmaker"]: r["price"] for r in conn.execute(
                     "SELECT bookmaker, price FROM odds WHERE match_id=? AND timing='current' AND market=? "
                     "AND selection=?", (m["id"], market, selection))}
                 mine = {b: p for b, p in prices.items() if b in allowed}
                 p_model = model_by_match.get(m["id"], {}).get(market, {}).get(selection)
                 leg = Leg(m["id"], m["competition"], kickoff.isoformat(" ", "minutes"), m["home_team"],
-                          m["away_team"], market, selection, 0.0, "", p_market, p_model, n_books, prices)
-                if p_model is not None and abs(p_model - p_market) > config.MAX_MODEL_GAP:
-                    suspicious = (leg, p_market, p_model)
+                          m["away_team"], market, selection, 0.0, "", p_market, p_model, n_books, prices,
+                          p_raw, [t for t in adjust_notes if "ausgeschlossen" not in t])
+                if p_model is not None and abs(p_model - p_raw) > config.MAX_MODEL_GAP:
+                    suspicious = (leg, p_raw, p_model)
                 if mine:
-                    leg.bookmaker, leg.price = max(mine.items(), key=lambda item: item[1])
+                    bookmaker, price = max(mine.items(), key=lambda item: item[1])
+                    if price <= config.MAX_LEG_ODDS:  # Außenseiter werden nicht empfohlen
+                        leg.bookmaker, leg.price = bookmaker, price
                 match_legs.append(leg)
         if suspicious:
             # Weicht das Modell bei einem Ausgang stark ab, fehlt ihm Information über das ganze Spiel
@@ -175,6 +187,30 @@ def optimize(legs: list[Leg], target: float, max_legs: int = 3, tolerance: float
         if len(chosen) == count:
             break
     return chosen
+
+
+def best_in_range(legs: list[Leg], low: float, high: float, max_legs: int = 1,
+                  min_return: float = config.MIN_EXPECTED_RETURN) -> Suggestion | None:
+    """Wette des Tages: höchste Gewinnchance mit Gesamtquote zwischen low und high.
+
+    Nur Wetten mit ausreichender erwarteter Rückzahlung kommen in Frage. Bei gleicher Chance
+    gewinnt die mit der besseren Rückzahlung.
+    """
+    priced = [l for l in legs if l.price > 0]
+    by_return = sorted(priced, key=lambda l: l.expected_return, reverse=True)[:40]
+    by_chance = sorted(priced, key=lambda l: l.p_market, reverse=True)[:40]
+    pool = list({id(l): l for l in by_return + by_chance}.values())
+    best = None
+    for size in range(1, max_legs + 1):
+        for combo in itertools.combinations(pool, size):
+            if len({leg.match_id for leg in combo}) < size:
+                continue
+            s = Suggestion(list(combo))
+            if not low <= s.total_odds <= high or s.expected_return < min_return:
+                continue
+            if best is None or (s.win_probability, s.expected_return) > (best.win_probability, best.expected_return):
+                best = s
+    return best
 
 
 def save(conn: sqlite3.Connection, target: float, suggestion: Suggestion) -> None:

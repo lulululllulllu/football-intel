@@ -117,9 +117,22 @@ ODDS_API_SEARCH_WORDS = {
 MY_BOOKMAKERS = ["skybet"]     # nur Quoten dieser Buchmacher werden empfohlen (änderbar mit `books`)
 MIN_BOOKMAKERS_FOR_PROB = 3    # so viele Buchmacher müssen ein Spiel anbieten, damit die Wahrscheinlichkeit zählt
 MAX_MODEL_GAP = 0.12           # weicht das Modell stärker vom Markt ab, wird der Tipp ausgeschlossen
-MIN_EXPECTED_RETURN = 0.92     # darunter: "Heute keine Wette" (entspricht mehr als 8 % Verlust pro Einsatz)
+MIN_EXPECTED_RETURN = 0.95     # darunter: "Heute keine Wette" (mehr als 5 % Verlust pro Einsatz)
 MAX_ODDS_AGE_HOURS = 30        # ältere Quoten gelten als veraltet
 TARGET_TOLERANCE = 0.15        # Zielquote 3.00 erlaubt 2.55 bis 3.45
+
+# --- Erkenntnisse aus `python -m fi research` (fast 30.000 Spiele, Lern- und Prüfzeitraum) ---------
+# Der Markt überschätzt Außenseiter und unterschätzt Favoriten leicht.
+# (Marktwahrscheinlichkeit, tatsächlich eingetreten). Korrigiert werden nur die Ränder, wo der
+# Effekt eindeutig ist. Im Mittelbereich (20–65 %) hängt die Abweichung zu stark davon ab, wo
+# genau die Wetten im Bereich lagen, dort bleibt alles unverändert.
+CALIBRATION_POINTS = [(0.0, 0.0), (0.075, 0.064), (0.15, 0.142), (0.20, 0.20), (0.65, 0.65),
+                      (0.75, 0.762), (0.85, 0.871), (1.0, 1.0)]
+CALIBRATION_STRENGTH = 0.5     # nur die halbe Korrektur übernehmen: die Bereichsmitten sind Näherungen
+MAX_LEG_ODDS = 3.5             # Außenseiter über 3,5 zahlten historisch 57–92 % zurück
+LOSS_STREAK_EXCLUDE = 5        # nie auf ein Team nach so vielen Niederlagen in Folge (Rückzahlung 40–71 %)
+BOOST_SEASON_END_OVER = 0.015  # Über 2,5 in den letzten 4 Saisonspielen: +1,5 Prozentpunkte (gemessen +2,2 bis +4,4)
+BOOST_BALANCED_DRAW = 0.010    # Unentschieden bei Heim 35–45 %: +1,0 Prozentpunkte (gemessen +1,5 bis +1,9)
 
 # --- ClubElo (ligaübergreifende Stärke) -------------------------------------------------
 CLUBELO_BASE_URL = "http://api.clubelo.com"

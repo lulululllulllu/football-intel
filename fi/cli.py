@@ -394,6 +394,82 @@ def cmd_website(args) -> int:
     return 0
 
 
+def _ret(stat: dict | None, key: str = "return_single") -> str:
+    if not stat or key not in stat:
+        return "     – "
+    return f"{stat[key] * 100:5.1f}%"
+
+
+def _dev(stat: dict | None) -> str:
+    if not stat:
+        return "            –"
+    return f"{(stat['actual'] - stat['market']) * 100:+5.1f} P (z {stat['z']:+4.1f})"
+
+
+def cmd_research(args) -> int:
+    from fi import research
+    conn = db.connect()
+    print("Werte historische Spiele aus ...")
+    report = research.run(conn)
+    if not report["matches"]:
+        print("Keine Daten. Zuerst `python -m fi update` ausführen.")
+        return 1
+    research.save(report)
+    split = report["split_season"]
+    print(f"{report['matches']} Spiele. Lernzeitraum bis Saison {split[:2]}/{split[2:]}, "
+          f"Prüfzeitraum danach.\n")
+    print("Rückzahlung = was 1 € Einsatz im Schnitt zurückgebracht hätte. Unter 100 % = Verlust.")
+    print("\"Ein Buchmacher\" = Bet365-Quote vor dem Spiel, \"beste\" = höchste Quote aller erfassten Buchmacher.\n")
+
+    print("1) RÜCKZAHLUNG NACH QUOTENBEREICH")
+    current = None
+    for b in report["odds_buckets"]:
+        if b["label"] != current:
+            current = b["label"]
+            print(f"\n  {current}")
+            print("  Quote         Spiele   Markt  eingetr.   Rückzahlung: Lernen   Prüfen   Prüfen (beste)")
+        test, train = b["test"] or {}, b["train"] or {}
+        n = (train.get("n") or 0) + (test.get("n") or 0)
+        both = test or train
+        high = "+" if b["high"] > 100 else f"{b['high']:.1f}"
+        print(f"  {b['low']:.1f} – {high:<5}  {n:>6}   {both['market'] * 100:4.0f}%   {both['actual'] * 100:5.1f}%  "
+              f"             {_ret(b['train'])}   {_ret(b['test'])}   {_ret(b['test'], 'return_best')}")
+
+    print("\n2) RÜCKZAHLUNG NACH LIGA (Prüfzeitraum, ein Buchmacher)")
+    print("  Liga              Heim    Remis   Auswärts   Über 2,5  Unter 2,5")
+    by_league: dict = {}
+    for item in report["leagues"]:
+        by_league.setdefault(item["league"], {})[item["selection"]] = item["test"]
+    for league, sel in by_league.items():
+        print(f"  {league:<16} " + "   ".join(_ret(sel.get(k)) for k in ("H", "D", "A", "over", "under")))
+
+    print("\n3) FAKTOREN: Liegt der Markt in solchen Spielen daneben?")
+    print("  Abweichung = eingetreten minus Marktwahrscheinlichkeit, in Prozentpunkten.")
+    print("  z-Wert: ab etwa ±2 auffällig, darunter meist Zufall.\n")
+    for f in report["factors"]:
+        n_train = f["train"]["n"] if f["train"] else 0
+        n_test = f["test"]["n"] if f["test"] else 0
+        print(f"  {f['name']}")
+        print(f"      Lernen {n_train:>5} Spiele {_dev(f['train'])}   Prüfen {n_test:>5} Spiele {_dev(f['test'])}"
+              f"   Rückzahlung Prüfen {_ret(f['test'])}   -> {f['verdict']}")
+
+    print("\n4) WIE GENAU IST DER MARKT? (alle Wetten)")
+    print("  Markt sagt    Wetten   eingetreten")
+    for c in report["calibration"]:
+        print(f"  {c['low']:>3}–{c['high']:<3}%   {c['n']:>7}      {c['actual'] * 100:5.1f}%")
+
+    good = [b for b in report["odds_buckets"] if b["test"] and b["test"]["n"] >= 200 and "return_single" in b["test"]]
+    good.sort(key=lambda b: b["test"]["return_single"], reverse=True)
+    print("\nBESTE BEREICHE IM PRÜFZEITRAUM (mind. 200 Wetten, ein Buchmacher):")
+    for b in good[:5]:
+        t = b["test"]
+        print(f"  {b['label']:<14} Quote {b['low']:.1f}–{b['high'] if b['high'] < 100 else 'mehr'}   "
+              f"{t['return_single'] * 100:5.1f}% ± {t['return_single_se'] * 100:.1f}   ({t['n']} Wetten)")
+    print("\n± ist die Zufallsschwankung. Liegt 100 % innerhalb davon, ist ein Gewinn nicht belegt.")
+    print(f"Alle Zahlen gespeichert in {config.DATA_DIR / 'research.json'}")
+    return 0
+
+
 def cmd_alias(args) -> int:
     conn = db.connect()
     if args.source_name and args.canonical:
@@ -558,6 +634,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-update", action="store_true", help="keine Ergebnisse neu laden")
     p.add_argument("--no-odds", action="store_true", help="keine Quoten abrufen (spart Credits)")
     p.set_defaults(func=cmd_website)
+
+    sub.add_parser("research", help="Historische Untersuchung: Wo lag der Markt daneben?").set_defaults(
+        func=cmd_research)
 
     p = sub.add_parser("daily", help="Täglicher Lauf: Daten, Quoten, Prognosen")
     p.add_argument("--days", type=int, default=2)

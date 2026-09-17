@@ -42,7 +42,7 @@ class CollectTests(unittest.TestCase):
         db.upsert_odds(conn, mid, odds, fetched)
         legs, _ = optimizer.collect_legs(conn, now, days=2, allowed=["skybet"], use_model=False)
         self.assertEqual({l.bookmaker for l in legs}, {"skybet"})  # MyBookie hat bessere Quoten, zählt aber nicht
-        self.assertEqual(len(legs), 3)
+        self.assertEqual(len(legs), 2)  # Auswärtssieg zu 3.80 liegt über der Außenseiter-Grenze 3.5
         stale, _ = optimizer.collect_legs(conn, now + dt.timedelta(hours=31), days=2, allowed=["skybet"],
                                           use_model=False)
         self.assertEqual(stale, [])  # veraltete Quoten werden ignoriert

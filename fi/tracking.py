@@ -31,16 +31,18 @@ def _leg_key(leg: dict) -> tuple:
     return (leg["competition"], leg["match_date"], leg["home"], leg["away"], leg["market"], leg["selection"])
 
 
-def add(recs: list[dict], target: float, suggestion: Suggestion, created_at: str) -> bool:
+def add(recs: list[dict], target: float, suggestion: Suggestion, created_at: str,
+        kind: str = "Zielquote") -> bool:
     legs = [{"competition": l.competition, "match_date": l.match_date, "kickoff": l.kickoff,
              "kickoff_local": l.kickoff_local, "home": l.home, "away": l.away, "market": l.market,
              "selection": l.selection, "label": l.label, "price": l.price, "bookmaker": l.bookmaker,
              "p_market": round(l.p_market, 4), "p_model": None if l.p_model is None else round(l.p_model, 4)}
             for l in suggestion.legs]
     keys = sorted(_leg_key(l) for l in legs)
-    if any(r["target"] == target and sorted(_leg_key(l) for l in r["legs"]) == keys for r in recs):
+    if any(r["target"] == target and r.get("kind", "Zielquote") == kind
+           and sorted(_leg_key(l) for l in r["legs"]) == keys for r in recs):
         return False  # dieselbe Empfehlung gab es schon
-    recs.append({"created_at": created_at, "target": target, "total_odds": round(suggestion.total_odds, 3),
+    recs.append({"created_at": created_at, "kind": kind, "target": target, "total_odds": round(suggestion.total_odds, 3),
                  "win_probability": round(suggestion.win_probability, 4),
                  "expected_return": round(suggestion.expected_return, 4), "legs": legs, "result": OPEN})
     return True

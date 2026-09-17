@@ -93,7 +93,8 @@ button, input, select { font: inherit; color: inherit; }
 
 form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 label { display: grid; gap: 4px; font-size: .92rem; color: var(--muted); }
-input[type=number], select { background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; }
+input[type=number], select { background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; width: 100%; min-width: 0; max-width: 100%; }
+label { min-width: 0; }
 fieldset { grid-column: 1 / -1; border: 1px solid var(--line); padding: 10px 12px; margin: 0; }
 fieldset label { display: inline-flex; align-items: center; gap: 6px; margin: 4px 14px 4px 0; color: var(--ink); }
 #builder-out { margin-top: 16px; }
@@ -116,6 +117,15 @@ th { color: var(--muted); font-weight: 600; }
 td.num { font-family: var(--num); font-size: 1.1rem; white-space: nowrap; }
 .won { color: var(--pitch); font-weight: 700; } .lost { color: var(--loss); font-weight: 700; }
 .open { color: var(--muted); }
+.day-bet h2 { margin-top: 36px; }
+.checklist { margin: 14px 0 0; padding: 14px 18px; background: var(--surface); border-left: 4px solid var(--pitch); }
+.checklist ol { margin: 6px 0 0; padding-left: 1.2rem; }
+.checklist li { margin: 4px 0; }
+.hint { color: var(--hold); font-size: .88rem; }
+.check-result { margin-top: 14px; background: var(--slip); padding: 18px 20px; }
+.check-result .big { font-family: var(--num); font-size: 2.4rem; font-weight: 700; line-height: 1; }
+.verdict { font-weight: 700; margin-top: 8px; }
+.verdict.good { color: var(--pitch); } .verdict.bad { color: var(--loss); } .verdict.ok { color: var(--hold); }
 footer { margin-top: 56px; color: var(--muted); font-size: .88rem; max-width: 62ch; }
 @media (prefers-reduced-motion: no-preference) { .slip { animation: print .5s ease-out both; }
   @keyframes print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } } }
@@ -129,9 +139,15 @@ footer { margin-top: 56px; color: var(--muted); font-size: .88rem; max-width: 62
     <div id="alerts"></div>
   </header>
 
+  <section class="day-bet" aria-labelledby="h-day">
+    <h2 id="h-day">Wette des Tages</h2>
+    <p class="sub" id="day-sub"></p>
+    <div id="day"></div>
+  </section>
+
   <section aria-labelledby="h-tipp">
-    <h2 id="h-tipp">Beste Wette je Zielquote</h2>
-    <p class="sub">Höchste echte Gewinnchance für die gewählte Quote, nur mit Quoten deiner Buchmacher.</p>
+    <h2 id="h-tipp">Andere Zielquoten</h2>
+    <p class="sub">Höchste Rückzahlung für die gewählte Quote, nur mit Quoten deiner Buchmacher.</p>
     <div class="targets" id="targets" role="group" aria-label="Zielquote wählen"></div>
     <div id="tipp"></div>
   </section>
@@ -145,6 +161,17 @@ footer { margin-top: 56px; color: var(--muted); font-size: .88rem; max-width: 62
       <fieldset><legend>Buchmacher</legend><div id="b-books"></div></fieldset>
     </form>
     <div id="builder-out" aria-live="polite"></div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Quoten-Check</h2>
+    <p class="sub">Du siehst beim Buchmacher eine Wette? Spiel und Markt wählen, Quote eintragen: Die Seite zeigt die geschätzte Gewinnchance und ob die Quote fair ist.</p>
+    <form id="check">
+      <label>Spiel <select id="c-match"></select></label>
+      <label>Markt <select id="c-market"></select></label>
+      <label>Quote <input type="number" id="c-price" min="1.01" step="0.01" placeholder="z. B. 1,85"></label>
+    </form>
+    <div id="check-out" aria-live="polite"></div>
   </section>
 
   <section aria-labelledby="h-spiele">
@@ -187,6 +214,7 @@ function slipHTML(s, target) {
       <div class="leg-pick"><span>${esc(l.label)}</span><span>${odd(l.price)}</span></div>
       <div class="leg-facts">bei ${esc(l.bookmaker)}, Markt ${pct(l.p_market)} aus ${l.n_bookmakers} Buchmachern${
         l.p_model === null ? ", kein Modell" : `, Modell ${pct(l.p_model)}`}</div>
+      ${(l.hints || []).map(h => `<div class="hint">${esc(h)}</div>`).join("")}
     </div>`).join("");
   const warn = s.expected_return > 1 ? " Über 100 % deutet meist auf eine veraltete Quote hin: beim Buchmacher prüfen." : "";
   const multi = s.legs.length > 1 ? " Jeder Tipp muss aufgehen." : "";
@@ -234,7 +262,7 @@ function runBuilder() {
   if (!books.length) { out.innerHTML = `<div class="none">Mindestens einen Buchmacher auswählen.</div>`; return; }
   const legs = D.legs.map(l => {
     let best = null;
-    for (const b of books) if (l.prices[b] && (!best || l.prices[b] > best[1])) best = [b, l.prices[b]];
+    for (const b of books) if (l.prices[b] && l.prices[b] <= D.rules.max_leg_odds && (!best || l.prices[b] > best[1])) best = [b, l.prices[b]];
     return best ? {...l, bookmaker: best[0], price: best[1], er: l.p_market * best[1]} : null;
   }).filter(Boolean).sort((a, b) => b.er - a.er).slice(0, D.rules.pool);
   const low = target * (1 - D.rules.tolerance), high = target * (1 + D.rules.tolerance);
@@ -256,6 +284,93 @@ function runBuilder() {
 document.getElementById("builder").addEventListener("input", runBuilder);
 document.getElementById("builder").addEventListener("submit", e => e.preventDefault());
 runBuilder();
+
+// Wette des Tages
+const DB = D.day_bet;
+document.getElementById("day-sub").textContent = `Höchste Gewinnchance mit Quote ${odd(DB.range[0])} bis ${odd(DB.range[1])}, `
+  + `nur wenn im Schnitt mindestens ${pct(DB.min_return)} des Einsatzes zurückkommen.`;
+if (DB.suggestion) {
+  const s = DB.suggestion, single = s.legs.length === 1;
+  const minPrice = single ? DB.min_return / s.legs[0].p_market : null;
+  document.getElementById("day").innerHTML = slipHTML(s) + `<div class="checklist"><strong>Vor dem Wetten prüfen</strong><ol>
+    ${single ? `<li>Quote bei ${esc(s.legs[0].bookmaker)} mindestens <b>${odd(Math.ceil(minPrice * 100) / 100)}</b>? Sonst lassen.</li>` : "<li>Quoten aller Tipps noch gleich oder höher?</li>"}
+    <li>Aufstellung ansehen (etwa 1 Stunde vor Anpfiff): Fehlen wichtige Spieler beim getippten Team?</li>
+    <li>Fester Einsatz, zum Beispiel 5&nbsp;% deines Monatsbudgets. Nie erhöhen, um Verluste zurückzuholen.</li></ol></div>`;
+} else {
+  document.getElementById("day").innerHTML = `<div class="none"><strong>Heute keine Wette</strong>`
+    + `Keine Wette in diesem Quotenbereich erreicht die Mindest-Rückzahlung. Das ist eine gute Entscheidung, keine verpasste Chance.</div>`;
+}
+
+// Quoten-Check
+function poisson(l, n) { const p = [Math.exp(-l)]; for (let k = 1; k <= n; k++) p.push(p[k - 1] * l / k); return p; }
+function matrix(lh, la, rho = -0.05, n = 8) {
+  const ph = poisson(lh, n), pa = poisson(la, n); let total = 0; const m = [];
+  for (let h = 0; h <= n; h++) { m.push([]); for (let a = 0; a <= n; a++) {
+    let t = 1; if (h === 0 && a === 0) t = 1 - lh * la * rho; else if (h === 0 && a === 1) t = 1 + lh * rho;
+    else if (h === 1 && a === 0) t = 1 + la * rho; else if (h === 1 && a === 1) t = 1 - rho;
+    const v = ph[h] * pa[a] * Math.max(t, 0); m[h].push(v); total += v; } }
+  return m.map(r => r.map(v => v / total));
+}
+const prob = (m, f) => m.reduce((s, row, h) => s + row.reduce((t, v, a) => t + (f(h, a) ? v : 0), 0), 0);
+const checkable = D.matches.filter(m => m.goals);
+const cMatch = document.getElementById("c-match"), cMarket = document.getElementById("c-market"), cPrice = document.getElementById("c-price");
+cMatch.innerHTML = checkable.map((m, i) => `<option value="${i}">${esc(m.kickoff_local)} ${esc(m.home)} – ${esc(m.away)}</option>`).join("")
+  || "<option>Keine Spiele mit Quoten</option>";
+function marketList(m) {
+  const g = matrix(m.goals[0], m.goals[1]), mk = m.market["1x2"], ou = m.market["ou25"];
+  const h = mk ? mk.H : prob(g, (a, b) => a > b), d = mk ? mk.D : prob(g, (a, b) => a === b), a = mk ? mk.A : prob(g, (x, y) => x < y);
+  const list = [
+    ["1x2:H", `Sieg ${m.home}`, h, true], ["1x2:D", "Unentschieden", d, true], ["1x2:A", `Sieg ${m.away}`, a, true],
+    ["dc:1X", `Doppelte Chance ${m.home} oder Unentschieden`, h + d, true], ["dc:X2", `Doppelte Chance Unentschieden oder ${m.away}`, d + a, true],
+    ["dc:12", "Doppelte Chance: kein Unentschieden", h + a, true],
+    ["dnb:H", `${m.home} (Unentschieden = Einsatz zurück)`, h, true, d], ["dnb:A", `${m.away} (Unentschieden = Einsatz zurück)`, a, true, d],
+  ];
+  for (const line of [0.5, 1.5, 2.5, 3.5, 4.5]) {
+    const over = line === 2.5 && ou ? ou.over : prob(g, (x, y) => x + y > line);
+    list.push([`ou${line}:over`, `Über ${String(line).replace(".", ",")} Tore`, over, line === 2.5 && !!ou]);
+    list.push([`ou${line}:under`, `Unter ${String(line).replace(".", ",")} Tore`, 1 - over, line === 2.5 && !!ou]);
+  }
+  const btts = prob(g, (x, y) => x > 0 && y > 0);
+  list.push(["btts:yes", "Beide Teams treffen: Ja", btts, false], ["btts:no", "Beide Teams treffen: Nein", 1 - btts, false]);
+  for (const [side, name, idx] of [["h", m.home, 0], ["a", m.away, 1]]) for (const line of [0.5, 1.5]) {
+    const p = prob(g, (x, y) => [x, y][idx] > line);
+    list.push([`tg${side}${line}`, `${name} über ${String(line).replace(".", ",")} Tore`, p, false]);
+  }
+  return list;
+}
+function fillMarkets() {
+  const m = checkable[cMatch.value]; if (!m) return;
+  cMarket.innerHTML = marketList(m).map((x, i) => `<option value="${i}">${esc(x[1])}</option>`).join("");
+  prefill(); runCheck();
+}
+function prefill() {
+  const m = checkable[cMatch.value]; if (!m) return;
+  const key = marketList(m)[cMarket.value][0].replace("ou2.5", "ou25");
+  const price = m.my_prices[key]; cPrice.value = price ? price.toFixed(2) : "";
+}
+function runCheck() {
+  const out = document.getElementById("check-out"), m = checkable[cMatch.value];
+  if (!m) { out.innerHTML = ""; return; }
+  const [, label, p, direct, pushProb] = marketList(m)[cMarket.value];
+  const price = parseFloat(String(cPrice.value).replace(",", "."));
+  const fair = pushProb ? (1 - pushProb) / p : 1 / p;
+  let verdict = "";
+  if (price > 1) {
+    const er = pushProb ? price * p + pushProb : price * p;
+    const [cls, text] = er >= 1 ? ["good", "Sehr gute Quote: über der fairen Quote."] : er >= 0.97 ? ["good", "Gute Quote."]
+      : er >= D.rules.min_return ? ["ok", "Akzeptabel, aber nicht besonders gut."] : ["bad", "Schlechte Quote. Lieber lassen."];
+    verdict = `<div class="verdict ${cls}">${text} Im Schnitt kommen ${pct(er)} des Einsatzes zurück.</div>`;
+  }
+  out.innerHTML = `<div class="check-result"><div class="leg-when">${esc(label)}</div>
+    <div class="big">${pct(p, 1)}</div>Gewinnchance${pushProb ? `, bei ${pct(pushProb)} Unentschieden gibt es den Einsatz zurück` : ""}
+    <div class="leg-facts">Faire Quote ${odd(fair)}. ${direct ? "Direkt aus den Quoten vieler Buchmacher." : "Aus den Marktquoten umgerechnet, etwas ungenauer."}</div>
+    ${verdict}${price > 1 && !pushProb && D.rules.max_leg_odds < price ? `<div class="hint">Quote über ${odd(D.rules.max_leg_odds)}: Außenseiter-Wetten zahlten historisch deutlich schlechter zurück.</div>` : ""}</div>`;
+}
+cMatch.addEventListener("change", fillMarkets);
+cMarket.addEventListener("change", () => { prefill(); runCheck(); });
+cPrice.addEventListener("input", runCheck);
+document.getElementById("check").addEventListener("submit", e => e.preventDefault());
+fillMarkets();
 
 // Spiele
 const mEl = document.getElementById("matches");
@@ -281,7 +396,7 @@ document.getElementById("tally").textContent = S.settled
   : "Noch keine ausgewerteten Empfehlungen. Ergebnisse erscheinen einige Tage nach den Spielen.";
 const cls = {"gewonnen": "won", "verloren": "lost"};
 document.getElementById("track").innerHTML = D.track.length ? `<thead><tr><th>Datum</th><th>Tipps</th><th>Quote</th><th>Chance</th><th>Ergebnis</th></tr></thead><tbody>` +
-  D.track.map(r => `<tr><td>${esc(r.legs[0].kickoff_local.slice(3, 9))}</td>
+  D.track.map(r => `<tr><td>${esc(r.legs[0].kickoff_local.slice(3, 9))}${r.kind === "Wette des Tages" ? "<br><b>Tageswette</b>" : ""}</td>
     <td>${r.legs.map(l => `${esc(l.home)} – ${esc(l.away)}: ${esc(l.label)}`).join("<br>")}</td>
     <td class="num">${odd(r.total_odds)}</td><td class="num">${pct(r.win_probability)}</td>
     <td class="${cls[r.result] || "open"}">${esc(r.result)}</td></tr>`).join("") + "</tbody>" : "";
