@@ -22,7 +22,7 @@
     "p_model": null
    }
   ],
-  "result": "offen"
+  "result": "gewonnen"
  },
  {
   "created_at": "2026-09-16T15:31:13+00:00",
@@ -70,6 +70,32 @@
     "bookmaker": "skybet",
     "p_market": 0.1784,
     "p_model": 0.1863
+   }
+  ],
+  "result": "verloren"
+ },
+ {
+  "created_at": "2026-09-18T09:04:04+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 2.05,
+  "win_probability": 0.4676,
+  "expected_return": 0.9585,
+  "legs": [
+   {
+    "competition": "F1",
+    "match_date": "2026-09-19",
+    "kickoff": "2026-09-19 16:15",
+    "kickoff_local": "Sa 19.09. 17:15",
+    "home": "Paris FC",
+    "away": "Strasbourg",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Paris FC",
+    "price": 2.05,
+    "bookmaker": "skybet",
+    "p_market": 0.4676,
+    "p_model": 0.4039
    }
   ],
   "result": "offen"
