@@ -99,5 +99,57 @@
    }
   ],
   "result": "gewonnen"
+ },
+ {
+  "created_at": "2026-10-12T09:08:30+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.95,
+  "win_probability": 0.4917,
+  "expected_return": 0.9588,
+  "legs": [
+   {
+    "competition": "UCL",
+    "match_date": "2026-10-13",
+    "kickoff": "2026-10-13 20:00",
+    "kickoff_local": "Di 13.10. 21:00",
+    "home": "Ath Madrid",
+    "away": "Man United",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Ath Madrid",
+    "price": 1.95,
+    "bookmaker": "skybet",
+    "p_market": 0.4917,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-10-12T09:08:30+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 1.95,
+  "win_probability": 0.4917,
+  "expected_return": 0.9588,
+  "legs": [
+   {
+    "competition": "UCL",
+    "match_date": "2026-10-13",
+    "kickoff": "2026-10-13 20:00",
+    "kickoff_local": "Di 13.10. 21:00",
+    "home": "Ath Madrid",
+    "away": "Man United",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Ath Madrid",
+    "price": 1.95,
+    "bookmaker": "skybet",
+    "p_market": 0.4917,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
  }
 ]
