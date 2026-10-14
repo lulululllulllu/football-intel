@@ -124,7 +124,7 @@
     "p_model": null
    }
   ],
-  "result": "offen"
+  "result": "gewonnen"
  },
  {
   "created_at": "2026-10-12T09:08:30+00:00",
@@ -147,6 +147,58 @@
     "price": 1.95,
     "bookmaker": "skybet",
     "p_market": 0.4917,
+    "p_model": null
+   }
+  ],
+  "result": "gewonnen"
+ },
+ {
+  "created_at": "2026-10-14T09:21:15+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 2.0,
+  "win_probability": 0.4772,
+  "expected_return": 0.9545,
+  "legs": [
+   {
+    "competition": "UEL",
+    "match_date": "2026-10-15",
+    "kickoff": "2026-10-15 20:00",
+    "kickoff_local": "Do 15.10. 21:00",
+    "home": "Hoffenheim",
+    "away": "Besiktas JK",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Hoffenheim",
+    "price": 2.0,
+    "bookmaker": "skybet",
+    "p_market": 0.4772,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-10-14T09:21:15+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 2.0,
+  "win_probability": 0.4772,
+  "expected_return": 0.9545,
+  "legs": [
+   {
+    "competition": "UEL",
+    "match_date": "2026-10-15",
+    "kickoff": "2026-10-15 20:00",
+    "kickoff_local": "Do 15.10. 21:00",
+    "home": "Hoffenheim",
+    "away": "Besiktas JK",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Hoffenheim",
+    "price": 2.0,
+    "bookmaker": "skybet",
+    "p_market": 0.4772,
     "p_model": null
    }
   ],
