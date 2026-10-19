@@ -203,5 +203,57 @@
    }
   ],
   "result": "verloren"
+ },
+ {
+  "created_at": "2026-10-19T16:01:58+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.53,
+  "win_probability": 0.6253,
+  "expected_return": 0.9567,
+  "legs": [
+   {
+    "competition": "UCL",
+    "match_date": "2026-10-20",
+    "kickoff": "2026-10-20 20:00",
+    "kickoff_local": "Di 20.10. 21:00",
+    "home": "Liverpool",
+    "away": "Villarreal",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Liverpool",
+    "price": 1.53,
+    "bookmaker": "skybet",
+    "p_market": 0.6253,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-10-19T16:01:58+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 1.53,
+  "win_probability": 0.6253,
+  "expected_return": 0.9567,
+  "legs": [
+   {
+    "competition": "UCL",
+    "match_date": "2026-10-20",
+    "kickoff": "2026-10-20 20:00",
+    "kickoff_local": "Di 20.10. 21:00",
+    "home": "Liverpool",
+    "away": "Villarreal",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Liverpool",
+    "price": 1.53,
+    "bookmaker": "skybet",
+    "p_market": 0.6253,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
  }
 ]
