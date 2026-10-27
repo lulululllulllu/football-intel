@@ -255,5 +255,57 @@
    }
   ],
   "result": "gewonnen"
+ },
+ {
+  "created_at": "2026-10-27T15:01:18+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.67,
+  "win_probability": 0.5708,
+  "expected_return": 0.9532,
+  "legs": [
+   {
+    "competition": "I1",
+    "match_date": "2026-10-28",
+    "kickoff": "2026-10-28 17:30",
+    "kickoff_local": "Mi 28.10. 18:30",
+    "home": "Milan",
+    "away": "Bologna",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Milan",
+    "price": 1.67,
+    "bookmaker": "skybet",
+    "p_market": 0.5708,
+    "p_model": 0.5018
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-10-27T15:01:18+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 1.67,
+  "win_probability": 0.5708,
+  "expected_return": 0.9532,
+  "legs": [
+   {
+    "competition": "I1",
+    "match_date": "2026-10-28",
+    "kickoff": "2026-10-28 17:30",
+    "kickoff_local": "Mi 28.10. 18:30",
+    "home": "Milan",
+    "away": "Bologna",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Milan",
+    "price": 1.67,
+    "bookmaker": "skybet",
+    "p_market": 0.5708,
+    "p_model": 0.5018
+   }
+  ],
+  "result": "offen"
  }
 ]
