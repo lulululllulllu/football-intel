@@ -280,7 +280,7 @@
     "p_model": 0.5018
    }
   ],
-  "result": "offen"
+  "result": "verloren"
  },
  {
   "created_at": "2026-10-27T15:01:18+00:00",
@@ -306,6 +306,6 @@
     "p_model": 0.5018
    }
   ],
-  "result": "offen"
+  "result": "verloren"
  }
 ]
