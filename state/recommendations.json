@@ -307,5 +307,57 @@
    }
   ],
   "result": "verloren"
+ },
+ {
+  "created_at": "2026-10-31T14:54:25+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.91,
+  "win_probability": 0.5071,
+  "expected_return": 0.9685,
+  "legs": [
+   {
+    "competition": "P1",
+    "match_date": "2026-11-01",
+    "kickoff": "2026-11-01 18:00",
+    "kickoff_local": "So 01.11. 19:00",
+    "home": "Academico Viseu",
+    "away": "Rio Ave",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Academico Viseu",
+    "price": 1.91,
+    "bookmaker": "skybet",
+    "p_market": 0.5071,
+    "p_model": 0.5959
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-10-31T14:54:25+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 1.91,
+  "win_probability": 0.5071,
+  "expected_return": 0.9685,
+  "legs": [
+   {
+    "competition": "P1",
+    "match_date": "2026-11-01",
+    "kickoff": "2026-11-01 18:00",
+    "kickoff_local": "So 01.11. 19:00",
+    "home": "Academico Viseu",
+    "away": "Rio Ave",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Academico Viseu",
+    "price": 1.91,
+    "bookmaker": "skybet",
+    "p_market": 0.5071,
+    "p_model": 0.5959
+   }
+  ],
+  "result": "offen"
  }
 ]
