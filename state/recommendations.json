@@ -411,5 +411,31 @@
    }
   ],
   "result": "gewonnen"
+ },
+ {
+  "created_at": "2026-11-04T16:41:38+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 2.05,
+  "win_probability": 0.468,
+  "expected_return": 0.9595,
+  "legs": [
+   {
+    "competition": "UEL",
+    "match_date": "2026-11-05",
+    "kickoff": "2026-11-05 20:00",
+    "kickoff_local": "Do 05.11. 21:00",
+    "home": "AZ Alkmaar",
+    "away": "Juventus",
+    "market": "1x2",
+    "selection": "A",
+    "label": "Sieg Juventus",
+    "price": 2.05,
+    "bookmaker": "skybet",
+    "p_market": 0.468,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
  }
 ]
