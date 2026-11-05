@@ -437,5 +437,57 @@
    }
   ],
   "result": "offen"
+ },
+ {
+  "created_at": "2026-11-05T16:56:56+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.54,
+  "win_probability": 0.6204,
+  "expected_return": 0.9555,
+  "legs": [
+   {
+    "competition": "UEL",
+    "match_date": "2026-11-05",
+    "kickoff": "2026-11-05 17:45",
+    "kickoff_local": "Do 05.11. 18:45",
+    "home": "Sparta Prague",
+    "away": "Bournemouth",
+    "market": "1x2",
+    "selection": "A",
+    "label": "Sieg Bournemouth",
+    "price": 1.54,
+    "bookmaker": "winamax_de",
+    "p_market": 0.6204,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
+ },
+ {
+  "created_at": "2026-11-05T16:56:56+00:00",
+  "kind": "Zielquote",
+  "target": 1.8,
+  "total_odds": 1.54,
+  "win_probability": 0.6204,
+  "expected_return": 0.9555,
+  "legs": [
+   {
+    "competition": "UEL",
+    "match_date": "2026-11-05",
+    "kickoff": "2026-11-05 17:45",
+    "kickoff_local": "Do 05.11. 18:45",
+    "home": "Sparta Prague",
+    "away": "Bournemouth",
+    "market": "1x2",
+    "selection": "A",
+    "label": "Sieg Bournemouth",
+    "price": 1.54,
+    "bookmaker": "winamax_de",
+    "p_market": 0.6204,
+    "p_model": null
+   }
+  ],
+  "result": "offen"
  }
 ]
