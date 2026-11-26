@@ -541,5 +541,31 @@
    }
   ],
   "result": "gewonnen"
+ },
+ {
+  "created_at": "2026-11-26T18:42:56+00:00",
+  "kind": "Wette des Tages",
+  "target": 2.0,
+  "total_odds": 1.5,
+  "win_probability": 0.6336,
+  "expected_return": 0.9504,
+  "legs": [
+   {
+    "competition": "I1",
+    "match_date": "2026-11-28",
+    "kickoff": "2026-11-28 14:00",
+    "kickoff_local": "Sa 28.11. 15:00",
+    "home": "Frosinone",
+    "away": "Parma",
+    "market": "1x2",
+    "selection": "H",
+    "label": "Sieg Frosinone",
+    "price": 1.5,
+    "bookmaker": "skybet",
+    "p_market": 0.6336,
+    "p_model": 0.5361
+   }
+  ],
+  "result": "offen"
  }
 ]
